@@ -42,6 +42,28 @@
         self.statusItem.button.target = self;
     }
 
+    // Create main menu (invisible but functional)
+    NSMenu *mainMenu = [[NSMenu alloc] init];
+    [NSApp setMainMenu:mainMenu];
+    
+    // Application menu
+    NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *appMenu = [[NSMenu alloc] init];
+    [appMenuItem setSubmenu:appMenu];
+    [mainMenu addItem:appMenuItem];
+    
+    // Edit menu
+    NSMenuItem *editMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
+    [editMenuItem setSubmenu:editMenu];
+    [mainMenu addItem:editMenuItem];
+    
+    // Add standard Edit menu items
+    [editMenu addItemWithTitle:@"Cut" action:@selector(cut:) keyEquivalent:@"x"];
+    [editMenu addItemWithTitle:@"Copy" action:@selector(copy:) keyEquivalent:@"c"];
+    [editMenu addItemWithTitle:@"Paste" action:@selector(paste:) keyEquivalent:@"v"];
+    [editMenu addItemWithTitle:@"Select All" action:@selector(selectAll:) keyEquivalent:@"a"];
+
     // --- Optional: Register Default Settings ---
     // If you had settings like the old app, register them here. None needed for this version yet.
     // NSDictionary *defaults = @{@"someSettingKey": @YES};
