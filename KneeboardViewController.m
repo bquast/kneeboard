@@ -1,7 +1,7 @@
 #import "KneeboardViewController.h"
 #import "AppDelegate.h"
 
-@interface KneeboardViewController () <NSTextViewDelegate>
+@interface KneeboardViewController ()
 
 @end
 
@@ -36,6 +36,13 @@
     self.textView.automaticTextReplacementEnabled = NO;
     self.textView.smartInsertDeleteEnabled = NO;
 
+    // *** Explicitly set editable and selectable ***
+    self.textView.editable = YES;
+    self.textView.selectable = YES;
+
+    // *** Add delegate assignment back ***
+    self.textView.delegate = self;
+
     // Add TextView to ScrollView
     scrollView.documentView = self.textView;
 
@@ -59,7 +66,15 @@
 
 - (void)focusTextView {
     // Make the text view the first responder to receive key events
-    [self.view.window makeFirstResponder:self.textView];
+    BOOL success = [self.view.window makeFirstResponder:self.textView];
+    // Log the result
+    NSLog(@"[KneeboardViewController focusTextView] makeFirstResponder success: %d", success);
+    if (!success) {
+        NSLog(@"[KneeboardViewController focusTextView] Window: %@", self.view.window);
+        NSLog(@"[KneeboardViewController focusTextView] TextView: %@", self.textView);
+        NSLog(@"[KneeboardViewController focusTextView] TextView editable: %d", self.textView.isEditable);
+        NSLog(@"[KneeboardViewController focusTextView] TextView selectable: %d", self.textView.isSelectable);
+    }
     // Optional: Select all text or move cursor to end
     // [self.textView setSelectedRange:NSMakeRange(self.textView.string.length, 0)];
 }
@@ -96,6 +111,16 @@
             }
         }
     }];
+}
+
+// *** ADD BACK textView:doCommandBySelector: ***
+- (BOOL)textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
+    NSLog(@"[KneeboardViewController textView:doCommandBySelector:] selector: %@", NSStringFromSelector(commandSelector));
+    NSLog(@"[KneeboardViewController textView:doCommandBySelector:] Current First Responder: %@", [self.view.window firstResponder]);
+
+    // Let NSTextView handle all commands by default
+    NSLog(@"[KneeboardViewController textView:doCommandBySelector:] Passing command to NSTextView.");
+    return NO;
 }
 
 @end 

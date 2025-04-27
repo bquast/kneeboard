@@ -65,39 +65,47 @@
                                   ofView:self.statusItem.button
                            preferredEdge:NSRectEdgeMinY]; // Show below the button
 
-        // Make the text view the first responder *after* the popover is shown.
-        // Using performSelector with delay 0 ensures the popover window exists first.
-        [self.kneeboardViewController performSelector:@selector(focusTextView) withObject:nil afterDelay:0];
+        NSLog(@"[AppDelegate showPopover] Attempting to focus text view and make window key...");
+        // *** RESTORE: Call helper method after delay ***
+        [self performSelector:@selector(focusTextViewAndMakeKeyWindow) withObject:nil afterDelay:0];
 
-        // Start monitoring for keyboard and mouse events to handle closing
-        __weak AppDelegate *weakSelf = self; // Use weak self to avoid retain cycles in block
+        // Event monitor for keyboard and mouse events
+        __weak AppDelegate *weakSelf = self;
         self.popoverEventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskKeyDown | NSEventMaskLeftMouseDown | NSEventMaskRightMouseDown) handler:^(NSEvent * _Nonnull event) {
-
-            // Check for Cmd+Enter key combination
             if (event.type == NSEventTypeKeyDown) {
-                // Key code 36 is Return/Enter
+                // Check for Cmd+Enter (keyCode 36)
                 if (event.keyCode == 36 && (event.modifierFlags & NSEventModifierFlagCommand)) {
+                    NSLog(@"[AppDelegate eventMonitor] Cmd+Enter detected! Closing popover.");
                     [weakSelf closePopover:sender];
-                    return (NSEvent *)nil; // Consume the event so it doesn't get processed further
+                    return (NSEvent *)nil;
+                }
+                // Check for Cmd+S (keyCode 1)
+                if (event.keyCode == 1 && (event.modifierFlags & NSEventModifierFlagCommand)) {
+                    NSLog(@"[AppDelegate eventMonitor] Cmd+S detected! Calling save.");
+                    [weakSelf.kneeboardViewController saveAction:nil];
+                    return (NSEvent *)nil;
                 }
             }
 
-            // Note: NSPopoverBehaviorTransient usually handles clicks outside automatically.
-            // This manual check might be redundant but can be kept for robustness if needed.
-            /*
-            if ((event.type == NSEventTypeLeftMouseDown || event.type == NSEventTypeRightMouseDown) && weakSelf.popover.isShown) {
-                 NSPoint locationInWindow = [event locationInWindow];
-                 NSPoint locationInView = [weakSelf.popover.contentViewController.view convertPoint:locationInWindow fromView:nil];
-                 BOOL clickInside = [weakSelf.popover.contentViewController.view mouse:locationInView inRect:weakSelf.popover.contentViewController.view.bounds];
-
-                 if (!clickInside && event.window != weakSelf.popover.contentViewController.view.window) {
-                     [weakSelf closePopover:sender];
-                 }
-             }
-            */
-
-            return event; // Return the event to allow other handlers to process it
+            // Pass all other events
+            NSLog(@"[AppDelegate eventMonitor] Passing event: %@", event);
+            return event;
         }];
+    }
+}
+
+// *** RESTORE this helper method ***
+- (void)focusTextViewAndMakeKeyWindow {
+    // First, make the text view the first responder
+    [self.kneeboardViewController focusTextView];
+
+    // Then, explicitly make the popover's window the key window
+    NSWindow *popoverWindow = self.kneeboardViewController.view.window;
+    if (popoverWindow) {
+        NSLog(@"[AppDelegate focusTextViewAndMakeKeyWindow] Making window key: %@", popoverWindow);
+        [popoverWindow makeKeyAndOrderFront:nil];
+    } else {
+         NSLog(@"[AppDelegate focusTextViewAndMakeKeyWindow] Warning: Popover window not found when trying to make key.");
     }
 }
 
@@ -133,6 +141,11 @@
         [[NSStatusBar systemStatusBar] removeStatusItem:self.statusItem];
     }
     // Any other cleanup if needed
+}
+
+// Add this method to address the secure coding warning
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
+    return YES;
 }
 
 @end

@@ -4,11 +4,12 @@
 @class AppDelegate;
 
 // *** Changed class name here ***
-@interface KneeboardViewController : NSViewController
+@interface KneeboardViewController : NSViewController <NSTextViewDelegate>
 
 @property (strong, nonatomic) NSTextView *textView;
 @property (weak, nonatomic) AppDelegate *appDelegate; // Weak reference to avoid retain cycle
 
 - (void)focusTextView;
+- (void)saveAction:(id)sender;
 
 @end 
