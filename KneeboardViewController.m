@@ -8,54 +8,15 @@
 @implementation KneeboardViewController
 
 - (void)loadView {
-    // Create the main container view
-    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 200, 230)]; // Increased height for button
-
-    // Create a ScrollView to hold the TextView
-    NSScrollView *scrollView = [[NSScrollView alloc] initWithFrame:NSMakeRect(5, 35, 190, 190)]; // Adjusted frame
-    scrollView.hasVerticalScroller = YES;
-    scrollView.borderType = NSBezelBorder; // Optional: adds a border
-
-    // Create the TextView
-    self.textView = [[NSTextView alloc] initWithFrame:scrollView.bounds];
-    self.textView.minSize = NSMakeSize(0.0, scrollView.contentSize.height); // Basic setup for resizing
-    self.textView.maxSize = NSMakeSize(FLT_MAX, FLT_MAX);
-    self.textView.verticallyResizable = YES;
-    self.textView.horizontallyResizable = NO; // Keep horizontal size fixed
-    self.textView.autoresizingMask = NSViewWidthSizable;
-    [self.textView.textContainer setContainerSize:NSMakeSize(scrollView.contentSize.width, FLT_MAX)];
-    [self.textView.textContainer setWidthTracksTextView:YES];
-
-    // Configure TextView properties
-    self.textView.allowsUndo = YES;
-    self.textView.font = [NSFont userFixedPitchFontOfSize:12.0]; // Use a monospaced font
-    self.textView.richText = NO; // Keep it plain text
-    self.textView.importsGraphics = NO;
-    self.textView.automaticQuoteSubstitutionEnabled = NO;
-    self.textView.automaticDashSubstitutionEnabled = NO;
-    self.textView.automaticTextReplacementEnabled = NO;
-    self.textView.smartInsertDeleteEnabled = NO;
-
-    // *** Explicitly set editable and selectable ***
-    self.textView.editable = YES;
-    self.textView.selectable = YES;
-
-    // *** Add delegate assignment back ***
-    self.textView.delegate = self;
-
-    // Add TextView to ScrollView
-    scrollView.documentView = self.textView;
-
-    // Create the Save Button
-    NSButton *saveButton = [NSButton buttonWithTitle:@"Save" target:self action:@selector(saveAction:)];
-    saveButton.bezelStyle = NSBezelStyleRounded;
-    saveButton.frame = NSMakeRect(10, 5, 80, 25); // Positioned at the bottom-left
-
-    // Add subviews to the main view
-    [view addSubview:scrollView];
-    [view addSubview:saveButton];
-
-    // Set the main view for this controller
+    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];  // 190+200, 188+200
+    
+    self.textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];  // 190+200, 188+200
+    self.textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+    self.textView.font = [NSFont systemFontOfSize:13.0];
+    self.textView.drawsBackground = YES;
+    self.textView.backgroundColor = [NSColor whiteColor];
+    
+    [view addSubview:self.textView];
     self.view = view;
 }
 

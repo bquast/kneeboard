@@ -16,6 +16,8 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    
     // 1. Create the View Controller for the popover content
     self.kneeboardViewController = [[KneeboardViewController alloc] init];
     // Pass a reference to the AppDelegate so the ViewController can call closePopover:
@@ -81,6 +83,13 @@
 
 // Shows the popover attached to the status item button
 - (void)showPopover:(id)sender {
+    if (!self.popover) {
+        self.popover = [[NSPopover alloc] init];
+        self.popover.contentViewController = self.kneeboardViewController;
+        self.popover.behavior = NSPopoverBehaviorTransient;
+        self.popover.contentSize = NSMakeSize(380, 376);  // doubled from 190, 188
+    }
+    
     if (self.statusItem.button) {
         // Display the popover positioned relative to the status item button
         [self.popover showRelativeToRect:self.statusItem.button.bounds
