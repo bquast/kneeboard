@@ -10,7 +10,8 @@
 - (void)loadView {
     NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];  // 190+200, 188+200
     
-    self.textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];  // 190+200, 188+200
+    // Create text view slightly smaller to make room for quit button
+    self.textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 30, 390, 358)];  // reduced height by 30
     self.textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     self.textView.font = [NSFont systemFontOfSize:13.0];
     self.textView.drawsBackground = YES;
@@ -19,7 +20,15 @@
     self.textView.backgroundColor = [NSColor textBackgroundColor];
     self.textView.textColor = [NSColor textColor];
     
+    // Add Quit button at the bottom
+    NSButton *quitButton = [[NSButton alloc] initWithFrame:NSMakeRect(10, 5, 70, 20)];
+    [quitButton setTitle:@"Quit"];
+    [quitButton setBezelStyle:NSBezelStyleRounded];
+    [quitButton setTarget:NSApp];
+    [quitButton setAction:@selector(terminate:)];
+    
     [view addSubview:self.textView];
+    [view addSubview:quitButton];
     self.view = view;
 }
 

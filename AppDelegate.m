@@ -4,13 +4,15 @@
 
 @interface AppDelegate ()
 // Status item shown in the menu bar
-@property (strong, nonatomic) NSStatusItem *statusItem;
+@property (strong) NSStatusItem *statusItem;
 // The popover window that appears
-@property (strong, nonatomic) NSPopover *popover;
+@property (strong) NSPopover *popover;
 // The view controller managing the popover's content (text view, button)
-@property (strong, nonatomic) KneeboardViewController *kneeboardViewController;
+@property (strong) KneeboardViewController *kneeboardViewController;
 // Used to monitor events like Cmd+Enter or clicks outside the popover to close it
 @property (strong, nonatomic) id popoverEventMonitor;
+// Add the new method declaration
+- (void)handleStatusItemClick:(id)sender;
 @end
 
 @implementation AppDelegate
@@ -18,111 +20,39 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
     
-    // 1. Create the View Controller for the popover content
+    // Initialize the view controller first
     self.kneeboardViewController = [[KneeboardViewController alloc] init];
-    // Pass a reference to the AppDelegate so the ViewController can call closePopover:
     self.kneeboardViewController.appDelegate = self;
-
-    // 2. Create the Popover
-    self.popover = [[NSPopover alloc] init];
-    self.popover.contentViewController = self.kneeboardViewController;
-    // Set popover behavior: transient means it closes when clicking outside
-    self.popover.behavior = NSPopoverBehaviorTransient;
-    self.popover.animates = YES; // Optional: adds fade-in/out animation
-
-    // 3. Create the Status Bar Item
-    // Get a status item from the system status bar with variable length (adjusts to content)
+    
+    // Create status item
     self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-
-    // 4. Configure the Status Bar Button
-    if (self.statusItem.button) {
-        // Use a simple text character as the icon (or an image)
-        self.statusItem.button.title = @"📝";
-        // Set the action to call when the button is clicked
-        self.statusItem.button.action = @selector(togglePopover:);
-        // Set the target (object that implements the action) to self (AppDelegate)
-        self.statusItem.button.target = self;
-    }
-
-    // Create main menu (invisible but functional)
-    NSMenu *mainMenu = [[NSMenu alloc] init];
-    [NSApp setMainMenu:mainMenu];
+    self.statusItem.button.title = @"✍️";
     
-    // Application menu
-    NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
-    NSMenu *appMenu = [[NSMenu alloc] init];
-    [appMenuItem setSubmenu:appMenu];
-    [mainMenu addItem:appMenuItem];
-    
-    // Edit menu
-    NSMenuItem *editMenuItem = [[NSMenuItem alloc] init];
-    NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
-    [editMenuItem setSubmenu:editMenu];
-    [mainMenu addItem:editMenuItem];
-    
-    // Add standard Edit menu items
-    [editMenu addItemWithTitle:@"Cut" action:@selector(cut:) keyEquivalent:@"x"];
-    [editMenu addItemWithTitle:@"Copy" action:@selector(copy:) keyEquivalent:@"c"];
-    [editMenu addItemWithTitle:@"Paste" action:@selector(paste:) keyEquivalent:@"v"];
-    [editMenu addItemWithTitle:@"Select All" action:@selector(selectAll:) keyEquivalent:@"a"];
-
-    // --- Optional: Register Default Settings ---
-    // If you had settings like the old app, register them here. None needed for this version yet.
-    // NSDictionary *defaults = @{@"someSettingKey": @YES};
-    // [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
+    // Set up button for click
+    self.statusItem.button.target = self;
+    self.statusItem.button.action = @selector(showPopover:);
 }
 
-// Action method called when the status bar item is clicked
-- (void)togglePopover:(id)sender {
-    if (self.popover.isShown) {
-        [self closePopover:sender];
-    } else {
-        [self showPopover:sender];
-    }
-}
-
-// Shows the popover attached to the status item button
 - (void)showPopover:(id)sender {
+    // Only handle left clicks here
+    NSEvent *event = [NSApp currentEvent];
+    if (event.type != NSEventTypeLeftMouseUp) {
+        return;
+    }
+    
+    // Show popover
     if (!self.popover) {
         self.popover = [[NSPopover alloc] init];
         self.popover.contentViewController = self.kneeboardViewController;
         self.popover.behavior = NSPopoverBehaviorTransient;
-        self.popover.contentSize = NSMakeSize(380, 376);  // doubled from 190, 188
+        self.popover.contentSize = NSMakeSize(390, 388);
     }
     
-    if (self.statusItem.button) {
-        // Display the popover positioned relative to the status item button
-        [self.popover showRelativeToRect:self.statusItem.button.bounds
-                                  ofView:self.statusItem.button
-                           preferredEdge:NSRectEdgeMinY]; // Show below the button
-
-        NSLog(@"[AppDelegate showPopover] Attempting to focus text view and make window key...");
-        // *** RESTORE: Call helper method after delay ***
-        [self performSelector:@selector(focusTextViewAndMakeKeyWindow) withObject:nil afterDelay:0];
-
-        // Event monitor for keyboard and mouse events
-        __weak AppDelegate *weakSelf = self;
-        self.popoverEventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskKeyDown | NSEventMaskLeftMouseDown | NSEventMaskRightMouseDown) handler:^(NSEvent * _Nonnull event) {
-            if (event.type == NSEventTypeKeyDown) {
-                // Check for Cmd+Enter (keyCode 36)
-                if (event.keyCode == 36 && (event.modifierFlags & NSEventModifierFlagCommand)) {
-                    NSLog(@"[AppDelegate eventMonitor] Cmd+Enter detected! Closing popover.");
-                    [weakSelf closePopover:sender];
-                    return (NSEvent *)nil;
-                }
-                // Check for Cmd+S (keyCode 1)
-                if (event.keyCode == 1 && (event.modifierFlags & NSEventModifierFlagCommand)) {
-                    NSLog(@"[AppDelegate eventMonitor] Cmd+S detected! Calling save.");
-                    [weakSelf.kneeboardViewController saveAction:nil];
-                    return (NSEvent *)nil;
-                }
-            }
-
-            // Pass all other events
-            NSLog(@"[AppDelegate eventMonitor] Passing event: %@", event);
-            return event;
-        }];
-    }
+    [self.popover showRelativeToRect:self.statusItem.button.bounds 
+                            ofView:self.statusItem.button 
+                     preferredEdge:NSMinYEdge];
+    
+    [self focusTextViewAndMakeKeyWindow];
 }
 
 // *** RESTORE this helper method ***
