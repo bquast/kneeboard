@@ -10,8 +10,8 @@
 - (void)loadView {
     NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];  // 190+200, 188+200
     
-    // Create text view slightly smaller to make room for quit button
-    self.textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 30, 390, 358)];  // reduced height by 30
+    // Create text view with space at bottom for quit text
+    self.textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 20, 390, 368)];  // reduced height by 20
     self.textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     self.textView.font = [NSFont systemFontOfSize:13.0];
     self.textView.drawsBackground = YES;
@@ -20,15 +20,19 @@
     self.textView.backgroundColor = [NSColor textBackgroundColor];
     self.textView.textColor = [NSColor textColor];
     
-    // Add Quit button at the bottom
-    NSButton *quitButton = [[NSButton alloc] initWithFrame:NSMakeRect(10, 5, 70, 20)];
-    [quitButton setTitle:@"Quit"];
-    [quitButton setBezelStyle:NSBezelStyleRounded];
-    [quitButton setTarget:NSApp];
-    [quitButton setAction:@selector(terminate:)];
+    // Add Quit text at the bottom right
+    NSTextField *quitLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(290, 3, 90, 17)];  // right-aligned
+    [quitLabel setStringValue:@"⌘Q to quit"];
+    [quitLabel setBezeled:NO];
+    [quitLabel setDrawsBackground:NO];
+    [quitLabel setEditable:NO];
+    [quitLabel setSelectable:NO];
+    [quitLabel setAlignment:NSTextAlignmentRight];
+    [quitLabel setFont:[NSFont systemFontOfSize:11.0]];
+    [quitLabel setTextColor:[NSColor secondaryLabelColor]];  // automatically adapts to light/dark mode
     
     [view addSubview:self.textView];
-    [view addSubview:quitButton];
+    [view addSubview:quitLabel];
     self.view = view;
 }
 

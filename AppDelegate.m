@@ -31,6 +31,20 @@
     // Set up button for click
     self.statusItem.button.target = self;
     self.statusItem.button.action = @selector(showPopover:);
+    
+    // Create main menu (invisible but handles Cmd+Q)
+    NSMenu *mainMenu = [[NSMenu alloc] init];
+    NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *appMenu = [[NSMenu alloc] init];
+    [appMenuItem setSubmenu:appMenu];
+    [mainMenu addItem:appMenuItem];
+    
+    // Add Quit menu item with Cmd+Q shortcut
+    [appMenu addItemWithTitle:@"Quit" 
+                     action:@selector(terminate:) 
+              keyEquivalent:@"q"];  // This automatically uses Cmd+Q
+              
+    [NSApp setMainMenu:mainMenu];
 }
 
 - (void)showPopover:(id)sender {
