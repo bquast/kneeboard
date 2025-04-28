@@ -14,7 +14,10 @@
     self.textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     self.textView.font = [NSFont systemFontOfSize:13.0];
     self.textView.drawsBackground = YES;
-    self.textView.backgroundColor = [NSColor whiteColor];
+    
+    // Use system colors that automatically adapt to dark/light mode
+    self.textView.backgroundColor = [NSColor textBackgroundColor];
+    self.textView.textColor = [NSColor textColor];
     
     [view addSubview:self.textView];
     self.view = view;
