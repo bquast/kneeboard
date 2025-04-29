@@ -32,7 +32,7 @@
     self.statusItem.button.target = self;
     self.statusItem.button.action = @selector(showPopover:);
     
-    // Create main menu (invisible but handles Cmd+Q)
+    // Create main menu (invisible but handles Cmd+Q and Edit shortcuts)
     NSMenu *mainMenu = [[NSMenu alloc] init];
     NSMenuItem *appMenuItem = [[NSMenuItem alloc] init];
     NSMenu *appMenu = [[NSMenu alloc] init];
@@ -42,8 +42,19 @@
     // Add Quit menu item with Cmd+Q shortcut
     [appMenu addItemWithTitle:@"Quit" 
                      action:@selector(terminate:) 
-              keyEquivalent:@"q"];  // This automatically uses Cmd+Q
+              keyEquivalent:@"q"];
               
+    // Add Edit menu for standard commands
+    NSMenuItem *editMenuItem = [[NSMenuItem alloc] init];
+    NSMenu *editMenu = [[NSMenu alloc] initWithTitle:@"Edit"];
+    [editMenuItem setSubmenu:editMenu];
+    [mainMenu addItem:editMenuItem];
+    
+    [editMenu addItemWithTitle:@"Cut" action:@selector(cut:) keyEquivalent:@"x"];
+    [editMenu addItemWithTitle:@"Copy" action:@selector(copy:) keyEquivalent:@"c"];
+    [editMenu addItemWithTitle:@"Paste" action:@selector(paste:) keyEquivalent:@"v"];
+    [editMenu addItemWithTitle:@"Select All" action:@selector(selectAll:) keyEquivalent:@"a"];
+
     [NSApp setMainMenu:mainMenu];
 }
 
@@ -51,9 +62,9 @@
     // Only handle left clicks here
     NSEvent *event = [NSApp currentEvent];
     if (event.type != NSEventTypeLeftMouseUp) {
-        return;
-    }
-    
+         return;
+     }
+
     // Show popover
     if (!self.popover) {
         self.popover = [[NSPopover alloc] init];
@@ -67,6 +78,28 @@
                      preferredEdge:NSMinYEdge];
     
     [self focusTextViewAndMakeKeyWindow];
+    
+    // Start monitoring events ONLY when popover is shown
+    if (!self.popoverEventMonitor) {
+        __weak AppDelegate *weakSelf = self;
+        self.popoverEventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:(NSEventMaskKeyDown) handler:^(NSEvent * _Nonnull event) {
+            // Check for Cmd+Enter (keyCode 36)
+            if (event.keyCode == 36 && (event.modifierFlags & NSEventModifierFlagCommand)) {
+                NSLog(@"[AppDelegate eventMonitor] Cmd+Enter detected! Closing popover.");
+                [weakSelf closePopover:nil];
+                return (NSEvent *)nil; // Consume the event
+            }
+            // Check for Cmd+S (keyCode 1)
+            if (event.keyCode == 1 && (event.modifierFlags & NSEventModifierFlagCommand)) {
+                NSLog(@"[AppDelegate eventMonitor] Cmd+S detected! Calling save.");
+                [weakSelf.kneeboardViewController saveAction:nil];
+                return (NSEvent *)nil; // Consume the event
+            }
+            
+            // Pass other key events through for text view handling
+            return event;
+        }];
+    }
 }
 
 // *** RESTORE this helper method ***
@@ -90,6 +123,7 @@
 
     // Stop monitoring events when the popover is closed
     if (self.popoverEventMonitor) {
+        NSLog(@"[AppDelegate closePopover] Removing event monitor.");
         [NSEvent removeMonitor:self.popoverEventMonitor];
         self.popoverEventMonitor = nil;
     }

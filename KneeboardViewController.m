@@ -90,14 +90,4 @@
     }];
 }
 
-// *** ADD BACK textView:doCommandBySelector: ***
-- (BOOL)textView:(NSTextView *)textView doCommandBySelector:(SEL)commandSelector {
-    NSLog(@"[KneeboardViewController textView:doCommandBySelector:] selector: %@", NSStringFromSelector(commandSelector));
-    NSLog(@"[KneeboardViewController textView:doCommandBySelector:] Current First Responder: %@", [self.view.window firstResponder]);
-
-    // Let NSTextView handle all commands by default
-    NSLog(@"[KneeboardViewController textView:doCommandBySelector:] Passing command to NSTextView.");
-    return NO;
-}
-
 @end 
