@@ -26,7 +26,7 @@
     
     // Create status item
     self.statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    self.statusItem.button.title = @"✍️";
+    self.statusItem.button.title = @"📝";
     
     // Set up button for click
     self.statusItem.button.target = self;
