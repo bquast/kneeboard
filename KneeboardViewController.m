@@ -2,38 +2,76 @@
 #import "AppDelegate.h"
 
 @interface KneeboardViewController ()
-
+// Add a property to hold the settings menu
+@property (strong, nonatomic) NSMenu *settingsMenu;
 @end
 
 @implementation KneeboardViewController
 
 - (void)loadView {
-    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];  // 190+200, 188+200
-    
-    // Create text view with space at bottom for quit text
-    self.textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 20, 390, 368)];  // reduced height by 20
+    NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];
+    // Make the main view layer-backed to ensure transparency works correctly for subviews
+    view.wantsLayer = YES;
+    view.layer.backgroundColor = [NSColor clearColor].CGColor; // Make sure the container view is clear
+
+    // --- Create Text View to fill the entire view ---
+    self.textView = [[NSTextView alloc] initWithFrame:view.bounds]; // Use view's bounds
     self.textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     self.textView.font = [NSFont systemFontOfSize:13.0];
     self.textView.drawsBackground = YES;
-    
-    // Use system colors that automatically adapt to dark/light mode
     self.textView.backgroundColor = [NSColor textBackgroundColor];
     self.textView.textColor = [NSColor textColor];
-    
-    // Add Quit text at the bottom right
-    NSTextField *quitLabel = [[NSTextField alloc] initWithFrame:NSMakeRect(290, 3, 90, 17)];  // right-aligned
-    [quitLabel setStringValue:@"⌘Q to quit"];
-    [quitLabel setBezeled:NO];
-    [quitLabel setDrawsBackground:NO];
-    [quitLabel setEditable:NO];
-    [quitLabel setSelectable:NO];
-    [quitLabel setAlignment:NSTextAlignmentRight];
-    [quitLabel setFont:[NSFont systemFontOfSize:11.0]];
-    [quitLabel setTextColor:[NSColor secondaryLabelColor]];  // automatically adapts to light/dark mode
-    
+
+    // --- Add Padding to the Text View ---
+    // Add padding/inset at the top so text content doesn't touch the edge/button
+    self.textView.textContainerInset = NSMakeSize(0, 10); // Width inset 0, Height inset 10 (top/bottom)
+
+    // --- Create the Settings Menu ---
+    self.settingsMenu = [[NSMenu alloc] init];
+    // Add About item (will need a target/action)
+    [self.settingsMenu addItemWithTitle:@"About Kneeboard" action:@selector(showAbout:) keyEquivalent:@""];
+    [self.settingsMenu addItem:[NSMenuItem separatorItem]];
+    // Add Save item (targets self for saveAction:)
+    [self.settingsMenu addItemWithTitle:@"Save..." action:@selector(saveAction:) keyEquivalent:@"s"]; // Use 's' for Cmd+S too
+    [self.settingsMenu addItem:[NSMenuItem separatorItem]];
+    // Add standard Edit items (targets will be set dynamically or use nil for first responder)
+    [self.settingsMenu addItemWithTitle:@"Cut" action:@selector(cut:) keyEquivalent:@"x"];
+    [self.settingsMenu addItemWithTitle:@"Copy" action:@selector(copy:) keyEquivalent:@"c"];
+    [self.settingsMenu addItemWithTitle:@"Paste" action:@selector(paste:) keyEquivalent:@"v"];
+    [self.settingsMenu addItem:[NSMenuItem separatorItem]];
+    [self.settingsMenu addItemWithTitle:@"Preferences..." action:@selector(showPreferences:) keyEquivalent:@""];
+    [self.settingsMenu addItem:[NSMenuItem separatorItem]];
+    [self.settingsMenu addItemWithTitle:@"Quit Kneeboard" action:@selector(terminate:) keyEquivalent:@"q"];
+
+    // --- Add Settings Cogwheel Button ---
+    // Adjust position to be relative to the top-right corner of the main view
+    CGFloat buttonSize = 25.0;
+    CGFloat margin = 8.0;
+    NSButton *settingsButton = [[NSButton alloc] initWithFrame:NSMakeRect(view.bounds.size.width - buttonSize - margin,
+                                                                          view.bounds.size.height - buttonSize - margin,
+                                                                          buttonSize, buttonSize)];
+    NSImage *cogIcon = [NSImage imageWithSystemSymbolName:@"gearshape" accessibilityDescription:@"Settings"];
+    if (!cogIcon) { cogIcon = [NSImage imageNamed:NSImageNameActionTemplate]; }
+    [settingsButton setImage:cogIcon];
+    [settingsButton setButtonType:NSButtonTypeMomentaryPushIn];
+    [settingsButton setBordered:NO];
+    // Make button non-transparent again as requested by user
+    [settingsButton setTransparent:NO];
+    settingsButton.focusRingType = NSFocusRingTypeNone;
+
+    // Set autoresizing mask to keep it in the top-right
+    settingsButton.autoresizingMask = NSViewMinXMargin | NSViewMinYMargin;
+
+    [settingsButton setTarget:self];
+    [settingsButton setAction:@selector(settingsButtonClicked:)];
+
+    // Add text view first, then button on top
     [view addSubview:self.textView];
-    [view addSubview:quitLabel];
+    [view addSubview:settingsButton positioned:NSWindowAbove relativeTo:self.textView];
+
     self.view = view;
+
+    // Remove old label code if it exists (should be gone already)
 }
 
 - (void)viewDidLoad {
@@ -88,6 +126,46 @@
             }
         }
     }];
+}
+
+// Action method for the settings button
+- (void)settingsButtonClicked:(NSButton *)sender {
+    // Set targets for menu items before showing
+    // About targets self
+    [[self.settingsMenu itemWithTitle:@"About Kneeboard"] setTarget:self];
+    // Save targets self
+    [[self.settingsMenu itemWithTitle:@"Save..."] setTarget:self];
+    // Cut, Copy, Paste target nil (first responder, which should be the text view)
+    [[self.settingsMenu itemWithTitle:@"Cut"] setTarget:nil];
+    [[self.settingsMenu itemWithTitle:@"Copy"] setTarget:nil];
+    [[self.settingsMenu itemWithTitle:@"Paste"] setTarget:nil];
+    // Preferences targets self
+    [[self.settingsMenu itemWithTitle:@"Preferences..."] setTarget:self];
+    // Quit targets the application
+    [[self.settingsMenu itemWithTitle:@"Quit Kneeboard"] setTarget:NSApp];
+
+    // Show the menu attached to the button
+    [self.settingsMenu popUpMenuPositioningItem:nil
+                                   atLocation:NSMakePoint(0, sender.bounds.size.height + 5)
+                                       inView:sender];
+}
+
+// Placeholder action for About
+- (void)showAbout:(id)sender {
+    NSLog(@"[KneeboardViewController] About clicked!");
+    // Use standard About panel
+    [NSApp orderFrontStandardAboutPanel:sender];
+}
+
+// Placeholder action for Preferences
+- (void)showPreferences:(id)sender {
+    NSLog(@"[KneeboardViewController] Preferences clicked!");
+    // TODO: Implement preferences window/logic here
+    NSAlert *alert = [[NSAlert alloc] init];
+    alert.messageText = @"Preferences";
+    alert.informativeText = @"Preferences functionality not yet implemented.";
+    alert.alertStyle = NSAlertStyleInformational;
+    [alert runModal];
 }
 
 @end 
