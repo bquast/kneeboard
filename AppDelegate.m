@@ -1,6 +1,12 @@
 // AppDelegate.m
 #import "AppDelegate.h"
 #import "KneeboardViewController.h" // Import the actual view controller header
+#import "PreferencesViewController.h" // Assuming notification name is defined here or globally
+
+// Add these constants near the top, after imports
+NSString * const kPrefWidthKey = @"popoverWidth";
+NSString * const kPrefHeightKey = @"popoverHeight";
+NSString * const kPrefAppearanceKey = @"appearanceSetting"; // 0: System, 1: Light, 2: Dark
 
 @interface AppDelegate ()
 // Status item shown in the menu bar
@@ -18,6 +24,18 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    // --- Register Default Preferences ---
+    NSDictionary *defaultPrefs = @{
+        kPrefWidthKey: @(390), // Current width
+        kPrefHeightKey: @(388), // Current height
+        kPrefAppearanceKey: @(0) // Default to System appearance
+    };
+    [[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
+    // --- End Register Defaults ---
+
+    // Apply initial appearance setting
+    [self applyAppearanceSetting];
+
     [NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
     
     // Initialize the view controller first
@@ -56,6 +74,13 @@
     [editMenu addItemWithTitle:@"Select All" action:@selector(selectAll:) keyEquivalent:@"a"];
 
     [NSApp setMainMenu:mainMenu];
+
+    // --- Add Observer for Preference Changes ---
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handlePrefsChange:)
+                                                 name:kPrefsChangedNotification
+                                               object:nil];
+    // --- End Add Observer ---
 }
 
 - (void)showPopover:(id)sender {
@@ -71,14 +96,32 @@
          return;
      }
 
+    // --- Read size from UserDefaults ---
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    CGFloat width = [defaults floatForKey:kPrefWidthKey];
+    CGFloat height = [defaults floatForKey:kPrefHeightKey];
+    // --- End Read size ---
+
     // If popover doesn't exist or isn't shown, create and show it
     if (!self.popover) {
         self.popover = [[NSPopover alloc] init];
         self.popover.contentViewController = self.kneeboardViewController;
         self.popover.behavior = NSPopoverBehaviorTransient;
-        self.popover.contentSize = NSMakeSize(390, 388);
     }
-    
+    // --- Set size from UserDefaults ---
+    self.popover.contentSize = NSMakeSize(width, height);
+    // --- End Set size ---
+
+    // --- Apply appearance setting to popover specifically if desired ---
+    // NSInteger appearanceSetting = [[NSUserDefaults standardUserDefaults] integerForKey:kPrefAppearanceKey];
+    // NSAppearanceName appearanceName = (appearanceSetting == 1) ? NSAppearanceNameAqua : ((appearanceSetting == 2) ? NSAppearanceNameDarkAqua : nil);
+    // if (appearanceName) {
+    //     self.popover.appearance = [NSAppearance appearanceNamed:appearanceName];
+    // } else {
+    //     self.popover.appearance = nil; // Use system
+    // }
+    // --- End Apply appearance ---
+
     [self.popover showRelativeToRect:self.statusItem.button.bounds 
                             ofView:self.statusItem.button 
                      preferredEdge:NSMinYEdge];
@@ -156,11 +199,51 @@
         [[NSStatusBar systemStatusBar] removeStatusItem:self.statusItem];
     }
     // Any other cleanup if needed
+
+    [[NSNotificationCenter defaultCenter] removeObserver:self]; // Remove observer
 }
 
 // Add this method to address the secure coding warning
 - (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app {
     return YES;
+}
+
+// --- Add method to apply appearance ---
+- (void)applyAppearanceSetting {
+    NSInteger appearanceSetting = [[NSUserDefaults standardUserDefaults] integerForKey:kPrefAppearanceKey];
+    NSAppearance *appearance = nil;
+    switch (appearanceSetting) {
+        case 1: // Light
+            appearance = [NSAppearance appearanceNamed:NSAppearanceNameAqua];
+            break;
+        case 2: // Dark
+            appearance = [NSAppearance appearanceNamed:NSAppearanceNameDarkAqua];
+            break;
+        default: // System (0) or unknown
+            appearance = nil; // Setting to nil uses system
+            break;
+    }
+    // Apply to the whole app, or just the popover if desired
+    NSApp.appearance = appearance;
+    // If you only want the popover affected:
+    // self.popover.appearance = appearance; // Needs to be done when popover is created/shown
+}
+
+// Method called when preferences change notification is received
+- (void)handlePrefsChange:(NSNotification *)notification {
+    NSLog(@"[AppDelegate] Preferences changed notification received.");
+
+    // Re-apply appearance setting
+    [self applyAppearanceSetting];
+
+    // Update popover size if it's currently visible
+    if (self.popover && self.popover.isShown) {
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        CGFloat width = [defaults floatForKey:kPrefWidthKey];
+        CGFloat height = [defaults floatForKey:kPrefHeightKey];
+        self.popover.contentSize = NSMakeSize(width, height);
+        NSLog(@"[AppDelegate] Updated popover size to: %.0f x %.0f", width, height);
+    }
 }
 
 @end

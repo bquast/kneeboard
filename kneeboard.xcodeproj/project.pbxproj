@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5482EE8D2DC257CD000C04E5 /* PreferencesViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5482EE8C2DC257CD000C04E5 /* PreferencesViewController.m */; };
 		54A38B132DB79CEC008119EC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 54A38B122DB79CEC008119EC /* AppDelegate.m */; };
 		54A38B182DB79CED008119EC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 54A38B172DB79CED008119EC /* Assets.xcassets */; };
 		54A38B1D2DB79CED008119EC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 54A38B1C2DB79CED008119EC /* main.m */; };
@@ -15,6 +16,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		5482EE8B2DC257CD000C04E5 /* PreferencesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PreferencesViewController.h; sourceTree = "<group>"; };
+		5482EE8C2DC257CD000C04E5 /* PreferencesViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PreferencesViewController.m; sourceTree = "<group>"; };
 		54A38B112DB79CEC008119EC /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		54A38B122DB79CEC008119EC /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		54A38B172DB79CED008119EC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -41,6 +44,8 @@
 			isa = PBXGroup;
 			children = (
 				54A38B112DB79CEC008119EC /* AppDelegate.h */,
+				5482EE8B2DC257CD000C04E5 /* PreferencesViewController.h */,
+				5482EE8C2DC257CD000C04E5 /* PreferencesViewController.m */,
 				54A38B122DB79CEC008119EC /* AppDelegate.m */,
 				54A38B172DB79CED008119EC /* Assets.xcassets */,
 				54A38B1E2DB79CED008119EC /* kneeboard.entitlements */,
@@ -126,6 +131,7 @@
 				54D8B2332DBE3C8800450557 /* KneeboardViewController.m in Sources */,
 				54A38B1D2DB79CED008119EC /* main.m in Sources */,
 				54A38B132DB79CEC008119EC /* AppDelegate.m in Sources */,
+				5482EE8D2DC257CD000C04E5 /* PreferencesViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

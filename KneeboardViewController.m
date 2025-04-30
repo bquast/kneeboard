@@ -1,5 +1,6 @@
 #import "KneeboardViewController.h"
 #import "AppDelegate.h"
+#import "PreferencesViewController.h"
 
 @interface KneeboardViewController ()
 // Add a property to hold the settings menu
@@ -157,15 +158,31 @@
     [NSApp orderFrontStandardAboutPanel:sender];
 }
 
-// Placeholder action for Preferences
+// Action method for the Preferences menu item
 - (void)showPreferences:(id)sender {
     NSLog(@"[KneeboardViewController] Preferences clicked!");
-    // TODO: Implement preferences window/logic here
-    NSAlert *alert = [[NSAlert alloc] init];
-    alert.messageText = @"Preferences";
-    alert.informativeText = @"Preferences functionality not yet implemented.";
-    alert.alertStyle = NSAlertStyleInformational;
-    [alert runModal];
+
+    // Check if a preferences window controller already exists/is open? (Optional, for single window)
+    // For simplicity, we create a new one each time here.
+
+    PreferencesViewController *prefsVC = [[PreferencesViewController alloc] init];
+    NSWindow *prefsWindow = [NSWindow windowWithContentViewController:prefsVC];
+    [prefsWindow setTitle:@"Kneeboard Preferences"];
+    // Make it a utility-style window if desired
+    // prefsWindow.styleMask |= NSWindowStyleMaskUtilityWindow;
+    prefsWindow.level = NSFloatingWindowLevel; // Keep it above normal windows
+
+    // Create a window controller to manage it
+    NSWindowController *prefsWindowController = [[NSWindowController alloc] initWithWindow:prefsWindow];
+
+    // Show the window
+    [prefsWindowController showWindow:self];
+
+    // Optional: Keep a reference to the window controller if you need to prevent multiple windows
+    // self.preferencesWindowController = prefsWindowController;
+
+     // Make the window front and key
+    [prefsWindow makeKeyAndOrderFront:sender];
 }
 
 @end 
