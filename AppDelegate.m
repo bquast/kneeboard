@@ -59,13 +59,19 @@
 }
 
 - (void)showPopover:(id)sender {
-    // Only handle left clicks here
+    // Check if the popover exists and is already shown
+    if (self.popover && self.popover.isShown) {
+        [self closePopover:sender];
+        return; // Exit the method after closing
+    }
+
+    // Only handle left clicks for showing (right-click/two-finger click are handled by the menu)
     NSEvent *event = [NSApp currentEvent];
-    if (event.type != NSEventTypeLeftMouseUp) {
+    if (event && event.type != NSEventTypeLeftMouseUp) {
          return;
      }
 
-    // Show popover
+    // If popover doesn't exist or isn't shown, create and show it
     if (!self.popover) {
         self.popover = [[NSPopover alloc] init];
         self.popover.contentViewController = self.kneeboardViewController;
