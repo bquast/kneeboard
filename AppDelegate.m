@@ -110,23 +110,19 @@ NSString * const kPrefAppearanceKey = @"appearanceSetting"; // 0: System, 1: Lig
     }
     // --- Set size from UserDefaults ---
     self.popover.contentSize = NSMakeSize(width, height);
+    // *** Explicitly set popover appearance ***
+    self.popover.appearance = NSApp.appearance; // Match the current app appearance
     // --- End Set size ---
 
-    // --- Apply appearance setting to popover specifically if desired ---
-    // NSInteger appearanceSetting = [[NSUserDefaults standardUserDefaults] integerForKey:kPrefAppearanceKey];
-    // NSAppearanceName appearanceName = (appearanceSetting == 1) ? NSAppearanceNameAqua : ((appearanceSetting == 2) ? NSAppearanceNameDarkAqua : nil);
-    // if (appearanceName) {
-    //     self.popover.appearance = [NSAppearance appearanceNamed:appearanceName];
-    // } else {
-    //     self.popover.appearance = nil; // Use system
-    // }
-    // --- End Apply appearance ---
+    // Show the popover
+    NSStatusBarButton *button = self.statusItem.button;
+    [self.popover showRelativeToRect:button.bounds ofView:button preferredEdge:NSRectEdgeMinY];
 
-    [self.popover showRelativeToRect:self.statusItem.button.bounds 
-                            ofView:self.statusItem.button 
-                     preferredEdge:NSMinYEdge];
-    
-    [self focusTextViewAndMakeKeyWindow];
+    // Focus the text view *after* showing
+    // Use dispatch_async to ensure it happens after the popover is fully displayed
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self focusTextViewAndMakeKeyWindow];
+    });
     
     // Start monitoring events ONLY when popover is shown
     if (!self.popoverEventMonitor) {
@@ -233,7 +229,7 @@ NSString * const kPrefAppearanceKey = @"appearanceSetting"; // 0: System, 1: Lig
 - (void)handlePrefsChange:(NSNotification *)notification {
     NSLog(@"[AppDelegate] Preferences changed notification received.");
 
-    // Re-apply appearance setting
+    // Re-apply appearance setting TO THE WHOLE APP
     [self applyAppearanceSetting];
 
     // Update popover size if it's currently visible

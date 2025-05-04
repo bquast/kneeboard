@@ -11,20 +11,26 @@
 
 - (void)loadView {
     NSView *view = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 390, 388)];
-    // Make the main view layer-backed to ensure transparency works correctly for subviews
+    // Make the main view layer-backed
     view.wantsLayer = YES;
-    view.layer.backgroundColor = [NSColor clearColor].CGColor; // Make sure the container view is clear
+    // *** REVERT to clearColor ***
+    // Make the container view clear again:
+    view.layer.backgroundColor = [NSColor clearColor].CGColor;
+    // Ensure text view draws its background which respects dark/light mode:
+    // view.layer.backgroundColor = [NSColor textBackgroundColor].CGColor; // <- REMOVE THIS LINE or comment out
 
     // --- Create Text View to fill the entire view ---
     self.textView = [[NSTextView alloc] initWithFrame:view.bounds]; // Use view's bounds
     self.textView.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
     self.textView.font = [NSFont systemFontOfSize:13.0];
+    // ENSURE TextView draws its background
     self.textView.drawsBackground = YES;
-    self.textView.backgroundColor = [NSColor textBackgroundColor];
-    self.textView.textColor = [NSColor textColor];
+    self.textView.backgroundColor = [NSColor textBackgroundColor]; // This respects appearance
+    self.textView.textColor = [NSColor textColor]; // This respects appearance
 
     // --- Add Padding to the Text View ---
     // Add padding/inset at the top so text content doesn't touch the edge/button
+    // Note: If padding causes the gray bar, consider adjusting padding or making the text view frame slightly smaller than the container.
     self.textView.textContainerInset = NSMakeSize(0, 10); // Width inset 0, Height inset 10 (top/bottom)
 
     // --- Create the Settings Menu ---
